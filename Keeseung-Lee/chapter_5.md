@@ -127,6 +127,77 @@ console.log(toy.getSpecs());
 
 ### 샌드박스 패턴
 
+네임스페이스 패턴으로는 동일한 애플리케이션이나 라이브러리의 두 가지 버전을 한 페이지에서 실행시키는 것이 불가능하다.
+
+샌드박스 패턴은 어떤 모듈이 다른 모듈과 그 모듈의 샌드박스에 영향을 미치지 않고 동작할 수 있는 환경을 제공한다.
+
+```javascript
+// SandBox 생성자
+var SandBox = function(){			
+	var args = Array.prototype.slice.call(arguments),
+		callback = args.pop(),
+		modules = (args[0] && typeof args[0] === "string") ? args : args[0],
+		i;
+
+	if(!(this instanceof SandBox)){
+		return new SandBox(modules, callback);
+	}
+
+	if(!modules || modules === "*" || modules[0] === "*"){
+		modules = [];
+		for(i in SandBox.modules){
+			if(SandBox.modules.hasOwnProperty(i)){
+				modules.push(i);
+			}
+		}
+	}
+
+	for(i=0; i<modules.length; i++){
+		SandBox.modules[modules[i]](this);
+	}
+
+	if(callback !== undefined && typeof callback == "function"){
+		callback(this);
+	}
+};
+SandBox.prototype = {
+	design: "SandBox Pattern",
+	version: 1.10,
+	getName: function(){
+		return this.name;
+	},
+	getSandBox: function(){
+		console.log(this);
+}
+
+// 샌드박스 모듈 생성
+SandBox.modules = {};
+SandBox.modules.dom = function(box){
+	box.getElement = function(){ console.log("getElement~") };
+	box.getStyle = function(){ console.log("getStyle~") };
+	box.foo = "bar";
+};
+SandBox.modules.event = function(box){
+	box.constructor.prototype.m = "mmm";
+	box.attachEvent = function(){ console.log("attachEvent!!")};
+	box.detachEvent = function(){ console.log("detachEvent!!")};
+};
+
+SandBox(['dom','event'],attachPlayGround)
+function attachPlayGround(box){
+	box.attachEvent();
+	box.getSandBox();
+	console.log(box.design)
+}
+SandBox('dom','event', detachPlayGround)
+function detachPlayGround(box){
+	box.detachEvent();
+	box.getSandBox();
+	console.log(box.design)
+}
+
+```
+
 ### 스태틱 멤버
 
 ### 객체 상수
