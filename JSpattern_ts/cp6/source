@@ -1,0 +1,29 @@
+		debugger;
+		/*==============================================================================================================*/
+		/*
+		* pg: 139 _ basic constructor #1
+		* Goal : 객체를 상속하는 소스
+		*/
+		function inherit (C, P) {
+			C.prototype = new P();
+		}
+
+		function Parent (name) {
+			if (!(this instanceof Parent)) {
+				return new Parent(name);
+			}
+
+			this.name = name || "Ted";
+		}
+
+		Parent.prototype.Say = function () {
+			return this.name;
+		};
+
+		function Child (name) {
+			if (!(this instanceof Child)) {
+				return new Child(name);
+			}
+		}
+
+		inherit(Child, Parent);
