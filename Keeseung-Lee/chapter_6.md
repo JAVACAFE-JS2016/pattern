@@ -135,13 +135,156 @@ Parent.prototype.say = function() {
 function Child(name) {}
 
 // 임시 생성자를 활용한 클래스 방식의 상속
+
 function inherit(C, P) {
   var F = function() {};
   F.prototype = P.prototype;
   C.prototype = new F();
+  C.uber = P.prototype;
+  C.prototype.constructor = C;
 }
 inherit(Child, Parent);
 
 var parent = new Parent();
 var kid = new Child();
+```
+
+#### Klass
+
+```javascript
+//Klass
+var klass = (function () {
+  var F = function () {};
+  return function (Parent, props) {
+    var Child, i;
+
+    //1. 새로운 생성자
+    Child = function() {
+      if (Child.uber && Child.uber.hasOwnProperty('__construct')) {
+        console.log('Child.uber.__construct 적용');
+        Child.uber.__construct.apply(this, arguments);
+      }
+      if(Child.prototype.hasOwnProperty('__construct')) {
+        console.log('Child.prototype.__construct 적용');
+        Child.prototype.__construct.apply(this, arguments);
+      }
+    };
+
+    //2. 상속
+    Parent = Parent || Object;
+
+    F.prototype = Parent.prototype;
+    Child.prototype = new F();
+    Child.uber = Parent.prototype;
+    Child.prototype.constructor = Child;
+
+    //3. 구현 메서드를 추가한다.
+    for (i in props) {
+      if (props.hasOwnProperty(i)) {
+        Child.prototype[i] = props[i];
+      }
+    }
+
+    //'클래스'를 반환한다.
+    return Child;
+  };
+}());
+
+var Man = klass(null, {
+  __construct: function (what) {
+    console.log("Man's Contructor");
+    this.name = what;
+  },
+  getName: function () {
+    return this.name;
+  }
+});
+
+var SuperMan = klass(Man, {
+  __construct: function (what) {
+    console.log("SuperMan's Contructor");
+  },
+  getName: function () {
+    var name = SuperMan.uber.getName.call(this);
+    return "I am " + name;
+  }
+});
+```
+
+#### 프로토타입을 활용한 상속
+
+```javascript
+// 상속해줄 객체
+var parent = {
+  name: "Papa";
+};
+// 새로운 객체
+var child = object(parent);
+
+// 프로토타입 상속
+function object(o) {
+  function F() {}
+  F.prototype = o;
+  return new F();
+}
+```
+
+#### 프로퍼티 복사를 통한 상속
+
+```javascript
+function extend(parent, child) {
+  var i;
+  child = child || {};
+  for (i in parent) {
+    if(parent.hasOwnProperty(i)) {
+      child[i] = parent[i];
+    }
+  }
+  return child;
+}
+
+var dad = {
+  counts: [1, 2, 3],
+  reads: {paper: true}
+};
+var kid = extend(dad);
+kid.counts.push(4);
+dad.counts.toString();   // "1,2,3,4"
+dad.reads === kid.reads; // true
+
+
+//깊은 복사 
+function extendDeep (parent, child) {
+  var i, 
+    toStr = Object.prototype.toString,
+    astr = "[object Array]"
+
+    child = child || {};
+
+    for(i in parent) {
+      if(parent.hasOwnProperty(i)) {
+        if(typeof parent[i] === "object") {
+          child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
+          extendDeep(parent[i], child[i]);
+        } else {
+          child[i] = parent[i]
+        }
+      }
+    }
+    return child;
+}
+
+var dad = {
+  counts: [1, 2, 3],
+  reads: {paper: true}
+};
+var kid = extendDeep(dad);
+kid.counts.push(4);
+kid.counts.toString();   // "1,2,3,4"
+dad.counts.toString();   // "1,2,3"
+
+dad.reads === kid.reads; // false
+kid.reads.papaer = false;
+kid.reads.web = true;
+dad.reads.papaer; // true
 ```
