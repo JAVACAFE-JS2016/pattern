@@ -286,5 +286,52 @@ dad.counts.toString();   // "1,2,3"
 dad.reads === kid.reads; // false
 kid.reads.papaer = false;
 kid.reads.web = true;
-dad.reads.papaer; // true
+dad.reads.paper; // true
 ```
+
+#### 믹스-인
+```javascript
+function mix() {
+  var arg, prop, child = {};
+  for (arg = 0; arg < arguments.length; arg+=1) {
+    for (prop in arguments[arg]) {
+      if (arguments[arg].hasOwnProperty(prop)) {
+        child[prop] = arguments[arg][prop];
+      }
+    }
+  }
+  return child;
+}
+
+var cake = mix(
+  {eggs: 2, large: true}
+  ,{butter: 1, salted: true}
+  ,{flour: "3 cups"}
+  ,{sugar: "sure!"}
+);
+```
+
+
+#### 메서드 빌려쓰기
+```javascript
+var one = {
+  name: "object"
+  ,say: function (greet) {
+    return greet + ", " + this.name;
+  }
+};
+one.say("hi");
+
+var two = {
+  name: "another object"
+};
+one.say.apply(two, ['hello']);
+one.say.call(two, 'hello');
+
+//bind
+var twosay2 = one.say.bind(two);
+twosay2('Bonjour');
+var twosay3 = one.say.bind(two, '안녕');
+twosay3();
+```
+
